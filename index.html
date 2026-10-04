@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Five on Five</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <meta name="description" content="Five on Five: an unofficial NHL statistical match centre. Results, standings, 5v5 xG and win-probability models, 2008-09 onward.">
+    <link href="vendor/bootstrap.min.css" rel="stylesheet">
+    <link href="css/style.css" rel="stylesheet">
+    <link rel="icon" href="favicon.svg?v=stick" type="image/svg+xml">
+    
+    <meta name="theme-color" content="#0a1626">
+    
+    <script src="vendor/plotly-basic.min.js"></script>
+    
+</head>
+<body>
+    <nav class="navbar navbar-expand-xl navbar-dark site-nav">
+        <div class="container">
+            <a class="navbar-brand" href="#home" data-section="home">
+                <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+                    <path class="stick" d="M5.2 24.6c0 1.7 1.3 3.1 3 3.1h9.2c1.7 0 2.7-1.8 1.8-3.3L27.1 8.1c.6-1.1-.3-2.5-1.6-2.5-.7 0-1.3.4-1.6 1L14.6 22.4H8.2c-1.7 0-3 1-3 2.2z"/>
+                </svg>
+                Five on Five
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="#dashboard" data-section="dashboard">Season</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#scores" data-section="scores">Scores</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#standings" data-section="standings">Standings</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#matches" data-section="matches">Games</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#teams" data-section="teams">Teams</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#structure" data-section="structure">Structure</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#players" data-section="players">Players</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#comparison" data-section="comparison">Compare</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#years" data-section="years">Years</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#predictions" data-section="predictions">Predictions</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="page-shell">
+        <div id="home" class="content-section">
+            <header class="page-hero">
+                <p class="eyebrow">A statistical match centre</p>
+                <h1>Hockey, taken apart</h1>
+                
+                <p class="lede">Five on Five is the NHL sister to <a href="https://areeslindley.github.io/down-and-distance/">Down &amp; Distance</a>: results, xG, rest and win-probability models, treated as samples rather than recaps and scored against a closing-line baseline. Slot 1 is spent. MoneyPuck is credited on every page that uses a shot.</p>
+                
+            </header>
+            <div id="home-upcoming" class="mb-4"></div>
+            <div id="home-kpis" class="row g-3 mb-4"></div>
+            <div class="row g-3 mb-4">
+                <div class="col-lg-4">
+                    <div class="home-prose">
+                        <h2>What this is</h2>
+                        
+                        <p>Each finished game is a sample: a score, Elo, Dixon–Coles and logistic-regression home-win chances, a 5v5 xG pair, and whether it went past regulation. Collect those samples and a club or a season is a distribution, not a recap.</p>
+                        
+                        <p>Skater and goalie logs come from <a href="https://moneypuck.com/data.htm">MoneyPuck</a> listed files — documented, versioned, non-commercial with credit. Not a scraped vendor, and not the NHL API.</p>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="home-prose">
+                        <h2>How to read it</h2>
+                        
+                        <p>Season is one year at a glance. Scores is one day's games with the Elo and Dixon–Coles win probabilities. Standings is the table on any date. Games is every result, filterable. Teams and Structure follow each year's real conferences and divisions. Players is goalie GSAx. Years labels lockout, realignment, 3-on-3 OT, Vegas, COVID, Seattle.</p>
+                        <p>The closing line is the yardstick on the Predictions page, scored in aggregate. No game's closing price or posted total is published on this site.</p>
+                        
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="home-prose">
+                        <h2>The close</h2>
+                        <p id="home-model-note">C0 is the posted close, not a learned model. Elo, Dixon–Coles and a logistic regression are lab models, not registered. Slot 1 shades the posted total from schedule density and did not clear.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="card mb-4">
+                <div class="card-header"><h5>What the data covers</h5></div>
+                <div class="card-body" id="home-coverage"><p class="coverage-note mb-0">Loading…</p></div>
+            </div>
+            <h2 class="home-section-title">Ways in</h2>
+            <p class="home-section-lede">Every page is a different cut of the same schedule file.</p>
+            <div class="row g-3 mb-4" id="home-explore"></div>
+        </div>
+
+        <div id="dashboard" class="content-section" style="display: none;">
+            <header class="page-hero">
+                <p class="eyebrow" id="season-eyebrow">Season</p>
+                <h1>This season</h1>
+                <p class="lede" id="season-lede">Latest MoneyPuck year. The modelled close lives on 2008–2021.</p>
+                <p class="coverage-note" id="season-coverage"></p>
+            </header>
+            <div class="card filter-bar mb-4">
+                <div class="card-body">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-3">
+                            <label class="form-label" for="season-select">Season</label>
+                            <select class="form-select" id="season-select"></select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row g-3 mb-4" id="season-kpis"></div>
+            <div class="row g-3 mb-4">
+                <div class="col-lg-6">
+                    <div class="card mb-0">
+                        <div class="card-header"><h5>5v5 xG against goals</h5></div>
+                        <div class="card-body">
+                            <p class="coverage-note mb-3">Each point is one team-game. Process on the x-axis, results on the y-axis. MoneyPuck xG.</p>
+                            <div id="season-xg-chart" class="home-chart"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="card mb-0">
+                        <div class="card-header"><h5>Regulation versus extra time</h5></div>
+                        <div class="card-body">
+                            <p class="coverage-note mb-3">Share of finished games that went to overtime or a shootout. 3-on-3 regular-season OT starts in 2015-16.</p>
+                            <div id="season-ot-chart" class="home-chart"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5>Latest results</h5>
+                    <a href="#matches" class="btn btn-primary btn-sm" data-section="matches">View all</a>
+                </div>
+                <div class="card-body">
+                    <div id="season-latest" class="table-responsive"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="scores" class="content-section" style="display: none;">
+            <header class="page-hero">
+                <p class="eyebrow">Daily</p>
+                <h1>Scores</h1>
+                
+                <p class="lede">One day's games, each with the Elo, Dixon–Coles and logistic-regression win chances beside the result. Step through game days or jump to a date.</p>
+                
+            </header>
+            <div class="card filter-bar mb-4">
+                <div class="card-body">
+                    <div class="date-strip-wrap">
+                        <button type="button" class="btn btn-outline-primary btn-sm" id="scores-prev" aria-label="Previous game day">‹ Earlier</button>
+                        <div class="date-strip" id="scores-strip" role="tablist" aria-label="Days around the selected date"></div>
+                        <button type="button" class="btn btn-outline-primary btn-sm" id="scores-next" aria-label="Next game day">Later ›</button>
+                    </div>
+                    <div class="row g-3 align-items-end mt-1">
+                        <div class="col-sm-6 col-md-3">
+                            <label class="form-label" for="scores-date">Date</label>
+                            <input type="date" class="form-control" id="scores-date">
+                        </div>
+                        <div class="col-sm-6 col-md-3">
+                            <button type="button" class="btn btn-primary" id="scores-latest">Latest game day</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <p class="coverage-note" id="scores-summary"></p>
+            <div class="row g-3 mb-4" id="scores-grid"></div>
+            <p class="coverage-note" id="scores-note"></p>
+        </div>
+
+        <div id="standings" class="content-section" style="display: none;">
+            <header class="page-hero">
+                <p class="eyebrow">League table</p>
+                <h1>Standings</h1>
+                <p class="lede">Rebuilt from the results in the catalogue, so any date in any season since 2008-09 can be shown. Conferences and divisions follow that year's real alignment.</p>
+            </header>
+            <div class="card filter-bar mb-4">
+                <div class="card-body">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-sm-6 col-md-3">
+                            <label class="form-label" for="standings-season">Season</label>
+                            <select class="form-select" id="standings-season"></select>
+                        </div>
+                        <div class="col-sm-6 col-md-3">
+                            <label class="form-label" for="standings-asof">As of</label>
+                            <input type="date" class="form-control" id="standings-asof">
+                        </div>
+                        <div class="col-md-6">
+                            <span class="form-label d-block" id="standings-view-label">View</span>
+                            <div class="btn-group" role="group" id="standings-views" aria-labelledby="standings-view-label"></div>
+                            <button type="button" class="btn btn-outline-primary btn-sm ms-2" id="standings-end">Season end</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <p class="coverage-note" id="standings-asof-note"></p>
+            <div id="standings-tables"></div>
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div id="standings-notes" class="standings-notes"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="matches" class="content-section" style="display: none;">
+            <header class="page-hero">
+                <p class="eyebrow">Catalogue</p>
+                <h2>All matches</h2>
+                
+                <p class="lede">Search by team. Elo, Dixon–Coles and logistic-regression win chances sit beside the scoreline. Closing-line prices are not published on this site.</p>
+                
+            </header>
+            <div class="card filter-bar mb-4">
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label" for="search-input">Search</label>
+                            <input type="text" class="form-control" id="search-input" placeholder="Team">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label" for="status-filter">Status</label>
+                            <select class="form-select" id="status-filter">
+                                <option value="">All</option>
+                                <option value="Finished">Finished</option>
+                                <option value="Scheduled">Scheduled</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label" for="matches-season">Season</label>
+                            <select class="form-select" id="matches-season">
+                                <option value="">All seasons</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label" for="game-type-filter">Type</label>
+                            <select class="form-select" id="game-type-filter">
+                                <option value="">All</option>
+                                <option value="REG">Regular season</option>
+                                <option value="PLA">Playoffs</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button type="button" class="btn btn-primary" id="matches-apply">Apply</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-body">
+                    <div id="matches-table" class="table-responsive"></div>
+                    <nav id="matches-pagination" class="mt-3"></nav>
+                </div>
+            </div>
+        </div>
+
+        <div id="teams" class="content-section" style="display: none;">
+            <div id="teams-index">
+                <header class="page-hero">
+                    <p class="eyebrow">Explore</p>
+                    <h2>Teams</h2>
+                    
+                    <p class="lede">Open a side for its record, results game by game and 5v5 xG. Atlanta, Phoenix and Arizona resolve on the year they played.</p>
+                    
+                </header>
+                <div class="card filter-bar mb-4">
+                    <div class="card-body">
+                        <div class="row g-3 align-items-end">
+                            <div class="col-md-3">
+                                <label class="form-label" for="teams-season">Season</label>
+                                <select class="form-select" id="teams-season"></select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="teams-grid"></div>
+            </div>
+            <div id="team-dashboard" style="display: none;"></div>
+        </div>
+
+        <div id="structure" class="content-section" style="display: none;">
+            <header class="page-hero">
+                <p class="eyebrow">League</p>
+                <h1>Structure</h1>
+                <p class="lede">Two conferences and four divisions from 2013-14, six divisions before that, and four temporary divisions with no conferences in 2020-21. Click a club for its record and xG.</p>
+            </header>
+            <div class="card filter-bar mb-4">
+                <div class="card-body">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-3">
+                            <label class="form-label" for="structure-season">Season</label>
+                            <select class="form-select" id="structure-season"></select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div id="structure-tree" class="league-tree"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="players" class="content-section" style="display: none;">
+            <header class="page-hero">
+                <p class="eyebrow">Catalogue</p>
+                <h2>Goalies</h2>
+                <p class="lede">Season GSAx from MoneyPuck situation=all ice time. Display only — the model’s starter is still previous-game, not a morning confirmation.</p>
+                <p class="coverage-note" id="players-coverage"></p>
+            </header>
+            <div class="card filter-bar mb-4">
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label" for="player-search">Search</label>
+                            <input type="text" class="form-control" id="player-search" placeholder="Goalie or team">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label" for="player-season">Season</label>
+                            <select class="form-select" id="player-season"></select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label" for="player-team">Team</label>
+                            <select class="form-select" id="player-team">
+                                <option value="">All teams</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button type="button" class="btn btn-primary" id="players-apply">Apply</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-body">
+                    <div id="players-table" class="table-responsive"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="comparison" class="content-section" style="display: none;">
+            <header class="page-hero">
+                <p class="eyebrow">Overlay</p>
+                <h2>Compare</h2>
+                <p class="lede">5v5 goals against expected goals for a season. Process versus results, not a recap.</p>
+            </header>
+            <div class="card filter-bar mb-4">
+                <div class="card-body">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-3">
+                            <label class="form-label" for="compare-season">Season</label>
+                            <select class="form-select" id="compare-season"></select>
+                        </div>
+                        <div class="col-md-3 d-flex align-items-end">
+                            <button type="button" class="btn btn-primary" id="compare-apply">Show league</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div id="compare-chart" class="home-chart"></div>
+                    <div id="compare-table" class="table-responsive mt-4"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="years" class="content-section" style="display: none;">
+            <div id="years-index">
+                <header class="page-hero">
+                    <p class="eyebrow">Explore</p>
+                    <h2>Years</h2>
+                    <p class="lede">2008-09 onward. Lockout, realignment, 3-on-3 OT, Vegas, the COVID years, and Seattle are labelled, not pooled.</p>
+                </header>
+                <div id="years-grid" class="row g-3"></div>
+            </div>
+        </div>
+
+        <div id="predictions" class="content-section" style="display: none;">
+            <header class="page-hero">
+                <p class="eyebrow">Walk-forward lab</p>
+                <h1>Predictions</h1>
+                <p class="lede">The closing line wins. The evidence is a reliability diagram, a Brier split on that same scale, every eval season as a row, sequential Elo and Dixon–Coles as lab models, the residual probe including what failed, and slot 1 — a totals shade that spends alpha whether or not it clears.</p>
+            </header>
+            
+            <p class="coverage-note">The closing-line archive behind these figures (Sportsbook Reviews Online, 2008–09 to 2022–23) is kept off this site. Everything below is an aggregate: Brier scores, reliability bins, per-season rows and slot results. No game's closing price or posted total is published.</p>
+            
+            <div class="card mb-4">
+                <div class="card-header"><h5>What is published</h5></div>
+                <div class="card-body pred-glossary">
+                    <div class="pred-glossary-block">
+                        <h6>Published and ledger</h6>
+                        <dl>
+                            <dt>C0 close</dt>
+                            <dd>Shin (1993) on the two-way closing moneyline. P(home win) is vig-free. There is no draw class. Scoreline is posted total plus puck line where both exist from 2014-15. Regulation three-way is not posted and is not modelled here. This is not a learned model.</dd>
+                            <dt>Ledger</dt>
+                            <dd>K_MAX is 10. Slot 1 is spent: a walk-forward shade of the posted total on combined games in the last seven days. It did not clear the O/U gate. P(home) stays C0. Nine slots remain.</dd>
+                        </dl>
+                    </div>
+                    <div class="pred-glossary-block">
+                        <h6>Lab only — not ledger tests</h6>
+                        <dl>
+                            <dt>Dixon–Coles</dt>
+                            <dd>Bivariate Poisson on ENG-adjusted regulation goals (team attack and defence, an era scoring level and an era home edge), then P(home) = P(reg) + P(tie) × P(home | tie). Previous-game starter GSAx is subtracted from the opponent λ. Walk-forward vs C0 on the Predictions card. Lab, not a ledger test. 2008 has no prior-season fit.</dd>
+                            <dt>Elo</dt>
+                            <dd>Sequential ratings. Walk-forward pick is K = 8, season-regression α = 0.2, home ice = 35 Elo points. Frozen FiveThirtyEight constants (K = 8, α = 1/3, home ice = 50) are the 2008 default. Lab, not a ledger test.</dd>
+                            <dt>Logistic regression</dt>
+                            <dd>A regularised logistic regression on the Elo probability plus rest, back-to-backs, travel, previous-game goalie GSAx, opponent-adjusted xG, PDO and special teams, all as of the morning of the game. No price is an input, so its per-game chances are published. Each season is predicted by a fit on earlier seasons, with the penalty chosen on those seasons. Walk-forward vs C0 and Elo on the Predictions card. Lab, not a ledger test.</dd>
+                            <dt>GSAx, xG, PDO, rest</dt>
+                            <dd>Phase 2 engines. Several predict raw wins. None of the moneyline features cleared the closing-line residual with era-stable sign.</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+            <div id="pred-summary" class="row g-3 mb-4"></div>
+            <div class="row g-3 mb-4">
+                <div class="col-lg-7">
+                    <div class="card mb-0">
+                        <div class="card-header"><h5>Pick accuracy</h5></div>
+                        <div class="card-body">
+                            <p class="coverage-note mb-3" id="pred-accuracy-note">Winner-pick accuracy at a 0.5 threshold. Binary Brier remains the headline.</p>
+                            <div id="pred-accuracy-table" class="table-responsive"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-5">
+                    <div class="card mb-0">
+                        <div class="card-header"><h5 id="pred-confusion-title">Confusion matrix</h5></div>
+                        <div class="card-body">
+                            <p class="coverage-note mb-3" id="pred-confusion-lede">Predicted winner against the actual winner for the most accurate method.</p>
+                            <div id="pred-confusion-table" class="table-responsive"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card mb-4">
+                <div class="card-header"><h5>Why the close wins</h5></div>
+                <div class="card-body">
+                    <p class="pred-argument-lede" id="pred-why-lede">The market is already calibrated. Walk-forward Platt returns the same Brier. Beating the close needs information it does not already have.</p>
+                    <div id="pred-yardstick-table" class="table-responsive mb-3"></div>
+                    <p class="coverage-note mb-0" id="pred-eval-note">Daily game-day blocks. Shin locked before the walk.</p>
+                </div>
+            </div>
+            <div class="row g-3 mb-4">
+                <div class="col-lg-7">
+                    <div class="card mb-0">
+                        <div class="card-header"><h5>Reliability diagram</h5></div>
+                        <div class="card-body">
+                            <p class="coverage-note mb-3">Stated P(home) against how often the home side won. The dashed line is perfect calibration. Caption is on the binary Brier scale.</p>
+                            <div id="pred-reliability-chart" class="home-chart"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-5">
+                    <div class="card mb-0">
+                        <div class="card-header"><h5>Brier split</h5></div>
+                        <div class="card-body">
+                            <p class="coverage-note mb-3">Binary Murphy: Brier = calibration + refinement, all on the headline scale. ECE is in probability points.</p>
+                            <p class="pred-brier-claim" id="pred-brier-claim"></p>
+                            <div id="pred-brier-table" class="table-responsive"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card mb-4">
+                <div class="card-header"><h5 id="pred-seasons-title">Per season</h5></div>
+                <div class="card-body">
+                    <p class="coverage-note mb-3">The current year is one row. The close window is the whole table, not the latest MoneyPuck file.</p>
+                    <div id="pred-seasons-table" class="table-responsive"></div>
+                </div>
+            </div>
+            <div class="card mb-4">
+                <div class="card-header"><h5>What the close does not already know</h5></div>
+                <div class="card-body">
+                    <p class="coverage-note mb-3">HC1 OLS of the closing-line residual. Moves residual = overall p &lt; 0.05 and sign-stable across eras. Failures are the finding.</p>
+                    <div id="pred-probe-table" class="table-responsive"></div>
+                </div>
+            </div>
+            <div class="card mb-4">
+                <div class="card-header"><h5>Dixon–Coles · lab</h5></div>
+                <div class="card-body">
+                    <p class="pred-argument-lede" id="pred-dc-lede">Bivariate Poisson on ENG-adjusted regulation goals, with previous-game starter GSAx in the λs. Not registered. The close is still the baseline.</p>
+                    <div id="pred-dc-table" class="table-responsive"></div>
+                </div>
+            </div>
+            <div class="card mb-4">
+                <div class="card-header"><h5>Logistic regression · lab</h5></div>
+                <div class="card-body">
+                    <p class="pred-argument-lede" id="pred-ml-lede">Regularised logistic regression on Elo, rest, travel, goalie and xG inputs. No price is an input. Each season is predicted by a fit on earlier seasons only. Not registered. The close is still the baseline.</p>
+                    <div id="pred-ml-table" class="table-responsive"></div>
+                    <div id="pred-ml-coefs" class="table-responsive mt-3"></div>
+                </div>
+            </div>
+            <div class="card mb-4">
+                <div class="card-header"><h5>Elo · lab</h5></div>
+                <div class="card-body">
+                    <p class="pred-argument-lede" id="pred-elo-lede">Sequential Elo with a walk-forward home-ice boost. K and α are chosen on prior seasons. Not registered. The close is still the baseline.</p>
+                    <div id="pred-elo-table" class="table-responsive"></div>
+                    <div id="pred-elo-fits" class="table-responsive mt-3"></div>
+                </div>
+            </div>
+            <div class="card mb-4">
+                <div class="card-header"><h5>C1 · slot 1</h5></div>
+                <div class="card-body">
+                    <p class="pred-argument-lede" id="pred-slot1-lede">Walk-forward shade of the posted total on combined games in the last seven days. P(home) stays C0. The lead number is one-sided O/U vs a coin-flip at spent α. The slot is spent either way.</p>
+                    <div id="pred-slot1-table" class="table-responsive"></div>
+                </div>
+            </div>
+            <div class="card mb-4">
+                <div class="card-header"><h5>Latest finished games</h5></div>
+                <div class="card-body">
+                    <div id="pred-latest-games" class="table-responsive"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="site-footer">
+        <div class="container">
+            <p class="footer-brand">Five on Five</p>
+            
+            <p class="footer-meta">Shot, xG and goalie logs from <a href="https://moneypuck.com/data.htm">MoneyPuck</a>, used non-commercially with credit. Unofficial: not affiliated with, endorsed by or sponsored by the NHL or any club. Team names appear only to identify teams. Closing-line prices are not published here.</p>
+            <p class="footer-meta">Data through 2026-10-03. Site built 2026-10-04.</p>
+            
+        </div>
+    </footer>
+
+    <div class="modal fade" id="match-modal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="match-modal-title">Match</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="match-modal-body"></div>
+            </div>
+        </div>
+    </div>
+
+    
+    <script src="vendor/bootstrap.bundle.min.js"></script>
+    <script>window.FIVE_STATIC = {"builtAt": "2026-10-04T13:37Z", "dataRoot": "data/"};</script>
+    <script src="js/static_api.js?v=2026-10-04T13%3A37Z"></script>
+    <script src="js/app.js?v=2026-10-04T13%3A37Z"></script>
+    
+</body>
+</html>
